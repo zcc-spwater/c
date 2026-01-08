@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>出缺席管理系統</title>
+    <style>
+        body {
+            background-color: #111;
+            color: white;
+            font-family: "Microsoft JhengHei", sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .box {
+            width: 380px;
+            margin: auto;
+            background-color: #222;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 12px #0af;
+        }
+
+        input, select {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 8px;
+            border: none;
+            background-color: #333;
+            color: white;
+        }
+
+        button {
+            width: 95%;
+            padding: 12px;
+            background-color: #0288d1;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #03a9f4;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            color: #0af;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>出缺席管理系統</h1>
+
+    <div class="box">
+        <form action="/submit" method="POST">
+
+            <input type="text" name="student_id" placeholder="學號" required>
+
+            <input type="text" name="name" placeholder="姓名" required>
+
+            <input type="date" name="date" required>
+
+            <select name="status">
+                <option value="出席">出席</option>
+                <option value="缺席">缺席</option>
+                <option value="公假">公假</option>
+                <option value="病假">病假</option>
+                <option value="事假">事假</option>
+            </select>
+
+            <button type="submit">送出資料</button>
+        </form>
+    </div>
+
+    <footer>製作：台南高商資料處理科 · Powered by Flask + Google Sheets</footer>
+</body>
+</html>
