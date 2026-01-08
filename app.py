@@ -1,3 +1,30 @@
+import os
+import json
+from flask import Flask, render_template, request
+import gspread
+from google.oauth2.service_account import Credentials
+
+# 1. 初始化 Flask 
+app = Flask(__name__)
+
+# 2. 設定 Google Sheets 連線
+google_json = os.environ.get('GOOGLE_SHEETS_JSON')
+
+if google_json:
+    # 讀取 Render 後台設定的金鑰
+    creds_dict = json.loads(google_json)
+    creds = Credentials.from_service_account_info(creds_dict)
+    client = gspread.authorize(creds)
+else:
+    # 電腦本地測試用的備案
+    client = gspread.service_account(filename='credentials.json')
+
+# 打開你的試算表 (使用你提供的 ID)
+spreadsheet = client.open_by_key("1Xb_tjeB3KbuXSxlwCwVsthRhAPIMKU8SYeiMMkyuEhw")
+sheet = spreadsheet.worksheet("工作表1") # 簽到紀錄分頁
+
+# --- 網頁路線設定 ---
+
 @app.route("/")
 def index():
     # 讀取排行榜工作表的所有資料
@@ -40,3 +67,6 @@ def submit():
         leader_sheet.append_row([student_id, name, current_points])
     
     return "<h2>資料已成功送出!</h2><p><a href='/'>返回排行榜</a></p>"
+
+if __name__ == "__main__":
+    app.run(debug=True)
