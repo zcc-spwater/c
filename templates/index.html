@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>出缺席管理系統 </title>
+    <title>出缺席管理系統</title>
     <style>
         body {
             background-color: #111;
@@ -11,14 +11,12 @@
             text-align: center;
             padding: 30px 10px;
         }
-
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-
         .box {
             width: 380px;
             background-color: #222;
@@ -26,125 +24,116 @@
             border-radius: 12px;
             box-shadow: 0px 0px 15px rgba(0, 170, 255, 0.3);
             border: 1px solid #333;
+            text-align: left;
         }
-
-        /* 排行榜專用樣式 */
-        .rank-box {
-            width: 420px;
-            background-color: #1a1a1a;
-            border-color: #ffd700; /* 金色邊框 */
-            box-shadow: 0px 0px 15px rgba(255, 215, 0, 0.2);
-        }
-
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #aaa; }
         input, select {
-            width: 90%;
-            padding: 12px;
-            margin: 8px;
-            border-radius: 8px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
             border: 1px solid #444;
             background-color: #333;
             color: white;
+            box-sizing: border-box;
         }
-
         button {
-            width: 95%;
+            width: 100%;
             padding: 12px;
-            background: linear-gradient(45deg, #0288d1, #03a9f4);
+            background-color: #00aaff;
+            color: white;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
-            color: white;
             font-size: 16px;
-            font-weight: bold;
-            margin-top: 10px;
+            cursor: pointer;
+            transition: 0.3s;
         }
-
-        button:hover {
-            filter: brightness(1.2);
-            box-shadow: 0px 0px 10px #0af;
+        button:hover { background-color: #0088cc; }
+        
+        /* 排行榜樣式 */
+        .rank-box {
+            width: 420px;
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #ffcc00;
         }
-
-        h1 { color: #0af; margin-bottom: 10px; }
-        h2 { color: #ffd700; margin-bottom: 15px; font-size: 1.2em; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th {
-            border-bottom: 2px solid #ffd700;
-            padding: 10px;
-            color: #aaa;
-            font-size: 0.9em;
-        }
-
-        td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #333;
-        }
-
-        .top-rank { color: #ffd700; font-weight: bold; } /* 前三名加亮 */
-
-        footer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #555;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #333; text-align: center; }
+        th { color: #ffcc00; }
     </style>
 </head>
 <body>
+
     <h1>出缺席管理系統</h1>
 
     <div class="container">
         <div class="box">
             <form action="/submit" method="POST">
-                <input type="text" name="student_id" placeholder="學號" required>
-                <input type="text" name="name" placeholder="姓名" required>
-                <input type="date" name="date" id="today-date" required>
+                <div class="form-group">
+                    <label>學號</label>
+                    <input type="text" name="student_id" placeholder="請輸入學號" required>
+                </div>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" name="name" placeholder="請輸入姓名" required>
+                </div>
+                <div class="form-group">
+                    <label>日期</label>
+                    <input type="date" name="date" id="todayDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>請選擇節次</label>
+                    <select name="period" required>
+                        <option value="第1節">第1節</option>
+                        <option value="第2節">第2節</option>
+                        <option value="第3節">第3節</option>
+                        <option value="第4節">第4節</option>
+                        <option value="第5節">第5節</option>
+                        <option value="第6節">第6節</option>
+                        <option value="第7節">第7節</option>
+                        <option value="第8節">第8節</option>
+                    </select>
+                </div>
 
-                <select name="status">
-                    <option value="出席">出席 (+10分)</option>
-                    <option value="公假">公假 (+10分)</option>
-                    <option value="遲到">遲到 (+5分)</option>
-                    <option value="病假">病假 (不扣分)</option>
-                    <option value="事假">事假 (不扣分)</option>
-                    <option value="缺席">缺席 (-5分)</option>
-                </select>
-
+                <div class="form-group">
+                    <label>狀態</label>
+                    <select name="status">
+                        <option value="出席">出席 (+10分)</option>
+                        <option value="公假">公假 (+10分)</option>
+                        <option value="遲到">遲到 (+5分)</option>
+                        <option value="缺席">缺席 (-5分)</option>
+                        <option value="病假">病假 (0分)</option>
+                        <option value="事假">事假 (0分)</option>
+                    </select>
+                </div>
                 <button type="submit">送出簽到資料</button>
             </form>
         </div>
 
-        <div class="box rank-box">
-            <h2>🏆 榮譽積分排行榜</h2>
+        <div class="rank-box">
+            <h3>🏆 榮譽積分排行榜</h3>
             <table>
-                <thead>
-                    <tr>
-                        <th>名次</th>
-                        <th>姓名</th>
-                        <th>積分</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in leaderboard %}
-                    <tr class="{{ 'top-rank' if loop.index <= 3 else '' }}">
-                        <td>{{ loop.index }}</td>
-                        <td>{{ student.name }}</td>
-                        <td>{{ student.score }} pts</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <tr>
+                    <th>名次</th>
+                    <th>姓名</th>
+                    <th>積分</th>
+                </tr>
+                {% for player in leaderboard %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.score }} pts</td>
+                </tr>
+                {% endfor %}
             </table>
         </div>
     </div>
 
-    <footer>製作：台南高商資料處理科 · 系統狀態：已連線 Google Sheets</footer>
-
     <script>
-        // 自動幫日期欄位填入今天日期
-        document.getElementById('today-date').valueAsDate = new Date();
+        // 自動帶入今日日期
+        document.getElementById('todayDate').valueAsDate = new Date();
     </script>
 </body>
 </html>
