@@ -2,138 +2,135 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>出缺席管理系統</title>
     <style>
         body {
-            background-color: #111;
+            background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #1a1a1a;
+            margin: 0; padding: 20px;
             color: white;
-            font-family: "Microsoft JhengHei", sans-serif;
-            text-align: center;
-            padding: 30px 10px;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
+            font-family: sans-serif;
+            display: flex; flex-direction: column; align-items: center;
         }
         .box {
-            width: 380px;
-            background-color: #222;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0px 0px 15px rgba(0, 170, 255, 0.3);
-            border: 1px solid #333;
-            text-align: left;
+            width: 100%; max-width: 380px;
+            background: rgba(34, 34, 34, 0.9);
+            padding: 20px; border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
+            margin-bottom: 20px; box-sizing: border-box;
         }
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #aaa; }
+        label { display: block; margin-bottom: 5px; color: #00aaff; font-weight: bold; }
         input, select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background-color: #333;
-            color: white;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; border-radius: 8px;
+            background: #222; color: white; border: 1px solid #444;
+            box-sizing: border-box; font-size: 16px;
         }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #00aaff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
+        /* 強制顯示按鈕的樣式 */
+        #gps-button {
+            width: 100%; padding: 15px;
+            background-color: #00aaff !important;
+            color: white !important;
+            border: none; border-radius: 10px;
+            font-size: 18px; font-weight: bold;
+            cursor: pointer; display: block !important;
+            margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        button:hover { background-color: #0088cc; }
-        
-        /* 排行榜樣式 */
         .rank-box {
-            width: 420px;
-            background-color: #1a1a1a;
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid #ffcc00;
+            width: 100%; max-width: 400px;
+            background: rgba(20, 20, 20, 0.8);
+            padding: 15px; border-radius: 15px; border: 1px solid #ffcc00;
         }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #333; text-align: center; }
-        th { color: #ffcc00; }
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        th { color: #ffcc00; padding: 10px; border-bottom: 2px solid #333; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
+    <h2>出缺席管理系統</h2>
 
-    <h1>出缺席管理系統</h1>
+    <div class="box">
+        <form action="/submit" method="POST" id="attendanceForm">
+            <input type="hidden" name="latitude" id="lat">
+            <input type="hidden" name="longitude" id="lon">
 
-    <div class="container">
-        <div class="box">
-            <form action="/submit" method="POST">
-                <div class="form-group">
-                    <label>學號</label>
-                    <input type="text" name="student_id" placeholder="請輸入學號" required>
-                </div>
-                <div class="form-group">
-                    <label>姓名</label>
-                    <input type="text" name="name" placeholder="請輸入姓名" required>
-                </div>
-                <div class="form-group">
-                    <label>日期</label>
-                    <input type="date" name="date" id="todayDate" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>請選擇節次</label>
-                    <select name="period" required>
-                        <option value="第1節">第1節</option>
-                        <option value="第2節">第2節</option>
-                        <option value="第3節">第3節</option>
-                        <option value="第4節">第4節</option>
-                        <option value="第5節">第5節</option>
-                        <option value="第6節">第6節</option>
-                        <option value="第7節">第7節</option>
-                        <option value="第8節">第8節</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label>學號</label>
+                <input type="text" name="student_id" required placeholder="請輸入學號">
+            </div>
+            <div class="form-group">
+                <label>姓名</label>
+                <input type="text" name="name" required placeholder="請輸入姓名">
+            </div>
+            <div class="form-group">
+                <label>日期</label>
+                <input type="date" id="todayDate" name="date" required>
+            </div>
+            <div class="form-group">
+                <label>節次</label>
+                <select name="period">
+                    <option value="第1節">第1節</option>
+                    <option value="第2節">第2節</option>
+                    <option value="第3節">第3節</option>
+                    <option value="第4節">第4節</option>
+                    <option value="第5節">第6節</option>
+                    <option value="第7節">第7節</option>
+                    <option value="第8節">第8節</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>狀態</label>
+                <select name="status">
+                    <option value="出席">出席 (+10分)</option>
+                    <option value="遲到">遲到 (+5分)</option>
+                    <option value="公假">公假 (+10分)</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label>狀態</label>
-                    <select name="status">
-                        <option value="出席">出席 (+10分)</option>
-                        <option value="公假">公假 (+10分)</option>
-                        <option value="遲到">遲到 (+5分)</option>
-                        <option value="缺席">缺席 (-5分)</option>
-                        <option value="病假">病假 (0分)</option>
-                        <option value="事假">事假 (0分)</option>
-                    </select>
-                </div>
-                <button type="submit">送出簽到資料</button>
-            </form>
-        </div>
+            <button type="button" id="gps-button" onclick="handleGPS()">送出簽到資料</button>
+        </form>
+    </div>
 
-        <div class="rank-box">
-            <h3>🏆 榮譽積分排行榜</h3>
-            <table>
-                <tr>
-                    <th>名次</th>
-                    <th>姓名</th>
-                    <th>積分</th>
-                </tr>
-                {% for player in leaderboard %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.score }} pts</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
+    <div class="rank-box">
+        <h3 style="text-align: center;">🏆 榮譽積分排行榜</h3>
+        <table>
+            <tr><th>名次</th><th>姓名</th><th>積分</th></tr>
+            {% for player in leaderboard %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ player['姓名'] or player.name }}</td>
+                <td>{{ player['積分'] or player.score }} pts</td>
+            </tr>
+            {% endfor %}
+        </table>
     </div>
 
     <script>
-        // 自動帶入今日日期
+        // 自動帶入日期
         document.getElementById('todayDate').valueAsDate = new Date();
+
+        function handleGPS() {
+            console.log("按鈕點擊成功");
+            if (!navigator.geolocation) {
+                alert("您的瀏覽器不支援 GPS");
+                return;
+            }
+
+            alert("正在取得定位，請點選『允許』...");
+            
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('lat').value = position.coords.latitude;
+                document.getElementById('lon').value = position.coords.longitude;
+                alert("定位成功！準備送出...");
+                document.getElementById('attendanceForm').submit();
+            }, function(error) {
+                alert("定位失敗：" + error.message + "\n請確認手機已開啟 GPS 並允許瀏覽器讀取位置。");
+            }, { enableHighAccuracy: true, timeout: 10000 });
+        }
     </script>
 </body>
 </html>

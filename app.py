@@ -1,81 +1,121 @@
-import os
-import json
 from flask import Flask, render_template, request
 import gspread
 from google.oauth2.service_account import Credentials
+from math import radians, cos, sin, asin, sqrt
 
-# --- 1. 初始化 Flask ---
 app = Flask(__name__)
 
-# --- 2. 設定 Google Sheets 連線與權限 ---
-scopes = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
-google_json = os.environ.get('GOOGLE_SHEETS_JSON')
-
-if google_json:
-    creds_dict = json.loads(google_json)
-    creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
-    client = gspread.authorize(creds)
-else:
-    client = gspread.service_account(filename='credentials.json', scopes=scopes)
-
-# 連線到你的試算表
-spreadsheet = client.open_by_key("1Xb_tjeB3KbuXSxlwCwVsthRhAPIMKU8SYeiMMkyuEhw")
-sheet = spreadsheet.worksheet("工作表1")
-
-# --- 3. 網頁路徑設定 ---
+# 地球距離計算
+def haversine(lon1, lat1, lon2, lat2):
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    dlon, dlat = lon2 - lon1, lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    return 2 * asin(sqrt(a)) * 6371 * 1000 
 
 @app.route("/")
 def index():
-    # 讀取排行榜
-    leader_sheet = spreadsheet.worksheet("Leaderboard")
-    data = leader_sheet.get_all_records()
-    # 依照積分排序
-    sorted_data = sorted(data, key=lambda x: int(x.get('積分', 0)), reverse=True) if data else []
-    display_list = [{"name": row.get('姓名', '未知'), "score": row.get('積分', 0)} for row in sorted_data[:10]]
-    return render_template("index.html", leaderboard=display_list)
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
+    client = gspread.authorize(creds)
+    # 這裡請改成你的試算表名稱
+    sheet = client.open("myproject").sheet1
+    data = sheet.get_all_records()
+    # 排序排行榜 (依積分從大到小)
+    sorted_data = sorted(data, key=lambda x: int(x.get('積分', 0)), reverse=True)
+    return render_template("index.html", leaderboard=sorted_data[:10])
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    student_id = str(request.form["student_id"]).strip()
-    name = request.form["name"]
-    date_str = request.form["date"] 
-    status = request.form["status"]
-    # 接收前端傳來的節次 (第1節~第8節)
-    period = request.form.get("period", "第1節") 
+    # 1. 定位驗證 (台南高商座標)
+    try:
+        s_lat, s_lon = float(request.form.get("latitude", 0)), float(request.form.get("longitude", 0))
+        dist = haversine(s_lon, s_lat, 120.202575, 22.981225)
+        if dist > 150: # 設定 150 公尺誤差
+            return f"❌ 簽到失敗！你距離學校 {int(dist)} 公尺，太遠囉！"
+    except:
+        return "❌ 座標錯誤，請重新定位。"
 
-    # --- 關鍵功能：防止同一節課重複簽到 ---
-    all_records = sheet.get_all_records()
-    for record in all_records:
-        # 同時檢查：學號、日期、節次。三者都對上才算重複。
-        if (str(record.get('學號')) == student_id and 
-            str(record.get('日期')) == date_str and 
-            str(record.get('節次')) == period):
-            return f"<h2>{name}，你這節課（{period}）已經簽到過了！</h2><p><a href='/'>返回</a></p>"
+    # 2. 寫入試算表 & 重複檢查
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("myproject").sheet1
+    
+    sid = request.form.get("student_id")
+    sdate = request.form.get("date")
+    
+    # 檢查是否已存在 (同天同人)
+    all_data = sheet.get_all_records()
+    if any(str(r.get('學號')) == sid and str(r.get('日期')) == sdate for r in all_data):
+        return "❌ 你今天已經簽到過囉！"
 
-    # 積分規則
-    points_map = {"出席": 10, "公假": 10, "遲到": 5, "病假": 0, "事假": 0, "缺席": -5}
-    current_points = points_map.get(status, 0)
+    # 寫入新資料
+    row = [sid, request.form.get("name"), sdate, request.form.get("period"), request.form.get("status")]
+    sheet.append_row(row)
+    return "✅ 簽到成功！座標已驗證。"
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    from flask import Flask, render_template, request
+import gspread
+from google.oauth2.service_account import Credentials
+from math import radians, cos, sin, asin, sqrt
+
+app = Flask(__name__)
+
+# 計算距離函數
+def haversine(lon1, lat1, lon2, lat2):
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    dlon, dlat = lon2 - lon1, lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    return 2 * asin(sqrt(a)) * 6371 * 1000 
+
+@app.route("/")
+def index():
+    try:
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
+        client = gspread.authorize(creds)
+        sheet = client.open("myproject").sheet1
+        data = sheet.get_all_records()
+        # 依積分排序
+        sorted_data = sorted(data, key=lambda x: int(x.get('積分', 0)), reverse=True)
+        return render_template("index.html", leaderboard=sorted_data[:10])
+    except Exception as e:
+        return f"讀取排行榜失敗: {e}"
+
+@app.route("/submit", methods=["POST"])
+def submit():
+    # 1. 定位驗證 (台南高商 22.981225, 120.202575)
+    try:
+        s_lat = float(request.form.get("latitude", 0))
+        s_lon = float(request.form.get("longitude", 0))
+        dist = haversine(s_lon, s_lat, 120.202575, 22.981225)
+        if dist > 150: # 150公尺誤差範圍
+            return f"❌ 簽到失敗！你距離學校約 {int(dist)} 公尺，太遠囉！"
+    except:
+        return "❌ 座標錯誤，請確認 GPS 已開啟。"
+
+    # 2. 連接試算表
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("myproject").sheet1
     
-    # 寫入「工作表1」(包含節次)
-    sheet.append_row([student_id, name, date_str, period, status])
+    sid = request.form.get("student_id")
+    sdate = request.form.get("date")
+    speriod = request.form.get("period") # 取得節次
     
-    # 更新「Leaderboard」總積分
-    leader_sheet = spreadsheet.worksheet("Leaderboard")
-    cell = leader_sheet.find(student_id)
-    if cell:
-        row_idx = cell.row
-        val = leader_sheet.cell(row_idx, 3).value
-        old_score = int(val) if (val and str(val).isdigit()) else 0
-        leader_sheet.update_cell(row_idx, 3, old_score + current_points)
-    else:
-        # 如果是新面孔，直接建立資料
-        leader_sheet.append_row([student_id, name, current_points])
-    
-    return f"<h2>簽到成功！{period} 分數已更新。</h2><p><a href='/'>返回排行榜</a></p>"
+    # 3. 重複簽到檢查 (同一天 + 同一節 + 同一人)
+    all_data = sheet.get_all_records()
+    for row in all_data:
+        if str(row.get('學號')) == sid and str(row.get('日期')) == sdate and str(row.get('節次')) == speriod:
+            return f"❌ 簽到失敗：學號 {sid} 在 {sdate} 的 {speriod} 已經簽過名了！"
+
+    # 4. 寫入資料
+    new_row = [sid, request.form.get("name"), sdate, speriod, request.form.get("status")]
+    sheet.append_row(new_row)
+    return "✅ 簽到成功！座標已驗證，資料已存入。"
 
 if __name__ == "__main__":
     app.run(debug=True)
