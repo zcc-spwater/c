@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>出缺席管理系統</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba');
@@ -30,7 +31,6 @@
             background: #222; color: white; border: 1px solid #444;
             box-sizing: border-box; font-size: 16px;
         }
-        /* 強制顯示按鈕的樣式 */
         #gps-button {
             width: 100%; padding: 15px;
             background-color: #00aaff !important;
@@ -48,13 +48,23 @@
         table { width: 100%; border-collapse: collapse; text-align: center; }
         th { color: #ffcc00; padding: 10px; border-bottom: 2px solid #333; }
         td { padding: 10px; border-bottom: 1px solid #222; }
+
+        /* 2. 精緻彈窗專屬樣式 (毛玻璃置中) */
+        .swal2-popup {
+            background: rgba(30, 30, 30, 0.8) !important;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            border-radius: 20px !important;
+            color: white !important;
+        }
+        .swal2-title, .swal2-html-container { color: white !important; text-align: center; }
     </style>
 </head>
 <body>
     <h2>出缺席管理系統</h2>
 
     <div class="box">
-        <form action="/submit" method="POST" id="attendanceForm">
+        <form id="attendanceForm">
             <input type="hidden" name="latitude" id="lat">
             <input type="hidden" name="longitude" id="lon">
 
@@ -77,7 +87,7 @@
                     <option value="第2節">第2節</option>
                     <option value="第3節">第3節</option>
                     <option value="第4節">第4節</option>
-                    <option value="第5節">第6節</option>
+                    <option value="第5節">第5節</option> <option value="第6節">第6節</option>
                     <option value="第7節">第7節</option>
                     <option value="第8節">第8節</option>
                 </select>
@@ -110,25 +120,55 @@
     </div>
 
     <script>
-        // 自動帶入日期
         document.getElementById('todayDate').valueAsDate = new Date();
 
         function handleGPS() {
-            console.log("按鈕點擊成功");
             if (!navigator.geolocation) {
-                alert("您的瀏覽器不支援 GPS");
+                Swal.fire('錯誤', '您的瀏覽器不支援 GPS', 'error');
                 return;
             }
 
-            alert("正在取得定位，請點選『允許』...");
+            // 使用 SweetAlert2 取代原本醜醜的 alert
+            Swal.fire({
+                title: '定位中',
+                text: '請點選『允許』以完成簽到',
+                icon: 'info',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
             
             navigator.geolocation.getCurrentPosition(function(position) {
                 document.getElementById('lat').value = position.coords.latitude;
                 document.getElementById('lon').value = position.coords.longitude;
-                alert("定位成功！準備送出...");
-                document.getElementById('attendanceForm').submit();
+                
+                // 取得定位後，改用 fetch 送出資料，避免畫面跳轉
+                const formData = new FormData(document.getElementById('attendanceForm'));
+                
+                fetch('/submit', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text()) // 這裡根據你的 app.py 回傳格式決定
+                .then(data => {
+                    // 根據回傳內容判斷成功或失敗，並顯示置中精緻彈窗
+                    const isSuccess = data.includes("成功");
+                    Swal.fire({
+                        title: isSuccess ? '✨ 簽到成功' : '💡 提示',
+                        text: data,
+                        icon: isSuccess ? 'success' : 'warning',
+                        confirmButtonText: '太棒了',
+                        confirmButtonColor: '#00aaff'
+                    }).then(() => {
+                        if (isSuccess) location.reload(); // 成功後重新整理更新排行榜
+                    });
+                })
+                .catch(error => {
+                    Swal.fire('失敗', '連線發生問題：' + error, 'error');
+                });
+
             }, function(error) {
-                alert("定位失敗：" + error.message + "\n請確認手機已開啟 GPS 並允許瀏覽器讀取位置。");
+                Swal.fire('定位失敗', error.message, 'error');
             }, { enableHighAccuracy: true, timeout: 10000 });
         }
     </script>
