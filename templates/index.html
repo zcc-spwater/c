@@ -105,19 +105,27 @@
         </form>
     </div>
 
-    <div class="rank-box">
-        <h3 style="text-align: center;">🏆 榮譽積分排行榜</h3>
-        <table>
-            <tr><th>名次</th><th>姓名</th><th>積分</th></tr>
-            {% for player in leaderboard %}
+    <div class="leaderboard-section">
+    <h3>🏆 榮譽積分排行榜</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>名次</th>
+                <th>姓名</th>
+                <th>積分</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in leaderboard %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td>{{ player['姓名'] or player.name }}</td>
-                <td>{{ player['積分'] or player.score }} pts</td>
+                <td>{{ user.姓名 }}</td>
+                <td>{{ user.積分 }} pts</td>
             </tr>
             {% endfor %}
-        </table>
-    </div>
+        </tbody>
+    </table>
+</div>
 
     <script>
         document.getElementById('todayDate').valueAsDate = new Date();
