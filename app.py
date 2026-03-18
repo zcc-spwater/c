@@ -76,8 +76,9 @@ def submit():
         this_score = SCORES_CONFIG.get(status, 0)
 
         # 按照順序寫入試算表：學號, 姓名, 日期, 節次, 狀態, 積分
-        sheet.append_row([sid, name, sdate, period, status, this_score])
-        
+        # 這是讓積分自動寫入 F 欄的關鍵
+        row_data = [sid, name, sdate, period, status, this_score]
+          sheet.append_row(row_data)
         return f"簽到成功！{name} 已獲得 {this_score} 分"
         
     except Exception as e:
