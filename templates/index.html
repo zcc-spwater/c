@@ -8,56 +8,33 @@
     <style>
         body {
             background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-color: #1a1a1a;
-            margin: 0; padding: 20px;
-            color: white;
-            font-family: sans-serif;
+            background-size: cover; background-position: center; background-attachment: fixed;
+            background-color: #1a1a1a; margin: 0; padding: 20px;
+            color: white; font-family: sans-serif;
             display: flex; flex-direction: column; align-items: center;
         }
         .box {
             width: 100%; max-width: 380px;
-            background: rgba(34, 34, 34, 0.9);
-            padding: 20px; border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
-            margin-bottom: 20px; box-sizing: border-box;
+            background: rgba(34, 34, 34, 0.9); padding: 20px; border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.4); margin-bottom: 20px;
         }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; color: #00aaff; font-weight: bold; }
         input, select {
             width: 100%; padding: 12px; border-radius: 8px;
-            background: #222; color: white; border: 1px solid #444;
-            box-sizing: border-box; font-size: 16px;
+            background: #222; color: white; border: 1px solid #444; box-sizing: border-box;
         }
         #gps-button {
-            width: 100%; padding: 15px;
-            background-color: #00aaff !important;
-            color: white !important;
-            border: none; border-radius: 10px;
-            font-size: 18px; font-weight: bold;
-            cursor: pointer; display: block !important;
-            margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            width: 100%; padding: 15px; background-color: #00aaff; color: white;
+            border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer;
         }
-        .rank-box {
-            width: 100%; max-width: 400px;
-            background: rgba(20, 20, 20, 0.8);
+        .leaderboard-section {
+            width: 100%; max-width: 400px; background: rgba(20, 20, 20, 0.8);
             padding: 15px; border-radius: 15px; border: 1px solid #ffcc00;
         }
         table { width: 100%; border-collapse: collapse; text-align: center; }
         th { color: #ffcc00; padding: 10px; border-bottom: 2px solid #333; }
         td { padding: 10px; border-bottom: 1px solid #222; }
-
-        /* 2. 精緻彈窗專屬樣式 (毛玻璃置中) */
-        .swal2-popup {
-            background: rgba(30, 30, 30, 0.8) !important;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 170, 255, 0.3);
-            border-radius: 20px !important;
-            color: white !important;
-        }
-        .swal2-title, .swal2-html-container { color: white !important; text-align: center; }
     </style>
 </head>
 <body>
@@ -67,29 +44,14 @@
         <form id="attendanceForm">
             <input type="hidden" name="latitude" id="lat">
             <input type="hidden" name="longitude" id="lon">
-
-            <div class="form-group">
-                <label>學號</label>
-                <input type="text" name="student_id" required placeholder="請輸入學號">
-            </div>
-            <div class="form-group">
-                <label>姓名</label>
-                <input type="text" name="name" required placeholder="請輸入姓名">
-            </div>
-            <div class="form-group">
-                <label>日期</label>
-                <input type="date" id="todayDate" name="date" required>
-            </div>
+            <div class="form-group"><label>學號</label><input type="text" name="student_id" required></div>
+            <div class="form-group"><label>姓名</label><input type="text" name="name" required></div>
+            <div class="form-group"><label>日期</label><input type="date" id="todayDate" name="date" required></div>
             <div class="form-group">
                 <label>節次</label>
                 <select name="period">
-                    <option value="第1節">第1節</option>
-                    <option value="第2節">第2節</option>
-                    <option value="第3節">第3節</option>
-                    <option value="第4節">第4節</option>
-                    <option value="第5節">第5節</option> <option value="第6節">第6節</option>
-                    <option value="第7節">第7節</option>
-                    <option value="第8節">第8節</option>
+                    <option value="第1節">第1節</option><option value="第2節">第2節</option>
+                    <option value="第3節">第3節</option><option value="第4節">第4節</option>
                 </select>
             </div>
             <div class="form-group">
@@ -100,84 +62,45 @@
                     <option value="公假">公假 (+10分)</option>
                 </select>
             </div>
-
             <button type="button" id="gps-button" onclick="handleGPS()">送出簽到資料</button>
         </form>
     </div>
 
     <div class="leaderboard-section">
-    <h3>🏆 榮譽積分排行榜</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>名次</th>
-                <th>姓名</th>
-                <th>積分</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in leaderboard %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ user.姓名 }}</td>
-                <td>{{ user.積分 }} pts</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        <h3>🏆 榮譽積分排行榜 (總計)</h3>
+        <table>
+            <thead><tr><th>名次</th><th>姓名</th><th>總積分</th></tr></thead>
+            <tbody>
+                {% for user in leaderboard %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ user.姓名 }}</td>
+                    <td>{{ user.積分 }} pts</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <script>
         document.getElementById('todayDate').valueAsDate = new Date();
-
         function handleGPS() {
-            if (!navigator.geolocation) {
-                Swal.fire('錯誤', '您的瀏覽器不支援 GPS', 'error');
-                return;
-            }
-
-            // 使用 SweetAlert2 取代原本醜醜的 alert
-            Swal.fire({
-                title: '定位中',
-                text: '請點選『允許』以完成簽到',
-                icon: 'info',
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-            
+            Swal.fire({ title: '定位中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
             navigator.geolocation.getCurrentPosition(function(position) {
                 document.getElementById('lat').value = position.coords.latitude;
                 document.getElementById('lon').value = position.coords.longitude;
-                
-                // 取得定位後，改用 fetch 送出資料，避免畫面跳轉
                 const formData = new FormData(document.getElementById('attendanceForm'));
-                
-                fetch('/submit', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.text()) // 這裡根據你的 app.py 回傳格式決定
+                fetch('/submit', { method: 'POST', body: formData })
+                .then(response => response.text())
                 .then(data => {
-                    // 根據回傳內容判斷成功或失敗，並顯示置中精緻彈窗
                     const isSuccess = data.includes("成功");
                     Swal.fire({
-                        title: isSuccess ? '✨ 簽到成功' : '💡 提示',
+                        title: isSuccess ? '完成' : '提示',
                         text: data,
-                        icon: isSuccess ? 'success' : 'warning',
-                        confirmButtonText: '太棒了',
-                        confirmButtonColor: '#00aaff'
-                    }).then(() => {
-                        if (isSuccess) location.reload(); // 成功後重新整理更新排行榜
-                    });
-                })
-                .catch(error => {
-                    Swal.fire('失敗', '連線發生問題：' + error, 'error');
+                        icon: isSuccess ? 'success' : 'info'
+                    }).then(() => { if(isSuccess) location.reload(); });
                 });
-
-            }, function(error) {
-                Swal.fire('定位失敗', error.message, 'error');
-            }, { enableHighAccuracy: true, timeout: 10000 });
+            }, function(e) { Swal.fire('定位失敗', e.message, 'error'); }, { enableHighAccuracy: true });
         }
     </script>
 </body>
