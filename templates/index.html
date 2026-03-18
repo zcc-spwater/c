@@ -1,64 +1,21 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>出缺席管理系統</title>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body { background-color: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .box, .rank-box { width: 100%; max-width: 400px; background: rgba(30,30,30,0.9); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,170,255,0.3); }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; box-sizing: border-box; }
-        button { background: #00aaff; color: white; font-weight: bold; cursor: pointer; }
-        table { width: 100%; text-align: center; border-collapse: collapse; margin-top: 10px; }
-        th { color: #ffcc00; border-bottom: 2px solid #444; padding: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #333; }
-    </style>
-</head>
-<body>
-    <h2>出缺席管理系統</h2>
-    <div class="box">
-        <form id="attendanceForm">
-            <input type="hidden" name="latitude" id="lat">
-            <input type="hidden" name="longitude" id="lon">
-            <label>學號</label><input type="text" name="student_id" required>
-            <label>姓名</label><input type="text" name="name" required>
-            <label>日期</label><input type="date" id="todayDate" name="date" required>
-            <label>狀態</label>
-            <select name="status">
-                <option value="出席">出席 (+10分)</option>
-                <option value="公假">公假 (+10分)</option>
-                <option value="遲到">遲到 (+5分)</option>
-            </select>
-            <button type="button" onclick="handleGPS()">送出簽到</button>
-        </form>
-    </div>
-
-    <div class="rank-box">
-        <h3>🏆 榮譽積分排行榜 (總計)</h3>
-        <table>
-            <thead><tr><th>名次</th><th>姓名</th><th>總分</th></tr></thead>
-            <tbody>
-                {% for user in leaderboard %}
-                <tr><td>{{ loop.index }}</td><td>{{ user.姓名 }}</td><td>{{ user.積分 }} 分</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-        document.getElementById('todayDate').valueAsDate = new Date();
-        function handleGPS() {
-            Swal.fire({ title: '定位中...', didOpen: () => { Swal.showLoading(); }});
-            navigator.geolocation.getCurrentPosition(function(pos) {
-                document.getElementById('lat').value = pos.coords.latitude;
-                document.getElementById('lon').value = pos.coords.longitude;
-                fetch('/submit', { method: 'POST', body: new FormData(document.getElementById('attendanceForm')) })
-                .then(res => res.text()).then(data => {
-                    Swal.fire(data.includes("成功") ? '成功' : '提示', data, 'info').then(() => location.reload());
-                });
-            }, function(err) { Swal.fire('定位失敗', err.message, 'error'); });
-        }
-    </script>
-</body>
-</html>
+<div class="leaderboard-section">
+    <h3>🏆 榮譽積分排行榜 (總計)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>名次</th>
+                <th>姓名</th>
+                <th>總積分</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in leaderboard %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ user.姓名 }}</td>
+                <td>{{ user.積分 }} pts</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
