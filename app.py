@@ -36,3 +36,4 @@ def index():
         return render_template("index.html", leaderboard=leaderboard[:10])
     except Exception as e:
         return f"讀取排行榜失敗：{e}"
+        # force_update_v99
