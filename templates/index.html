@@ -6,77 +6,41 @@
     <title>出缺席管理系統</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba');
-            background-size: cover; background-position: center; background-attachment: fixed;
-            background-color: #1a1a1a; margin: 0; padding: 20px;
-            color: white; font-family: sans-serif;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .box {
-            width: 100%; max-width: 380px;
-            background: rgba(34, 34, 34, 0.9); padding: 20px; border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 170, 255, 0.4); margin-bottom: 20px;
-        }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #00aaff; font-weight: bold; }
-        input, select {
-            width: 100%; padding: 12px; border-radius: 8px;
-            background: #222; color: white; border: 1px solid #444; box-sizing: border-box;
-        }
-        #gps-button {
-            width: 100%; padding: 15px; background-color: #00aaff; color: white;
-            border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer;
-        }
-        .leaderboard-section {
-            width: 100%; max-width: 400px; background: rgba(20, 20, 20, 0.8);
-            padding: 15px; border-radius: 15px; border: 1px solid #ffcc00;
-        }
-        table { width: 100%; border-collapse: collapse; text-align: center; }
-        th { color: #ffcc00; padding: 10px; border-bottom: 2px solid #333; }
-        td { padding: 10px; border-bottom: 1px solid #222; }
+        body { background-color: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .box, .rank-box { width: 100%; max-width: 400px; background: rgba(30,30,30,0.9); padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,170,255,0.3); }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; box-sizing: border-box; }
+        button { background: #00aaff; color: white; font-weight: bold; cursor: pointer; }
+        table { width: 100%; text-align: center; border-collapse: collapse; margin-top: 10px; }
+        th { color: #ffcc00; border-bottom: 2px solid #444; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
     <h2>出缺席管理系統</h2>
-
     <div class="box">
         <form id="attendanceForm">
             <input type="hidden" name="latitude" id="lat">
             <input type="hidden" name="longitude" id="lon">
-            <div class="form-group"><label>學號</label><input type="text" name="student_id" required></div>
-            <div class="form-group"><label>姓名</label><input type="text" name="name" required></div>
-            <div class="form-group"><label>日期</label><input type="date" id="todayDate" name="date" required></div>
-            <div class="form-group">
-                <label>節次</label>
-                <select name="period">
-                    <option value="第1節">第1節</option><option value="第2節">第2節</option>
-                    <option value="第3節">第3節</option><option value="第4節">第4節</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>狀態</label>
-                <select name="status">
-                    <option value="出席">出席 (+10分)</option>
-                    <option value="遲到">遲到 (+5分)</option>
-                    <option value="公假">公假 (+10分)</option>
-                </select>
-            </div>
-            <button type="button" id="gps-button" onclick="handleGPS()">送出簽到資料</button>
+            <label>學號</label><input type="text" name="student_id" required>
+            <label>姓名</label><input type="text" name="name" required>
+            <label>日期</label><input type="date" id="todayDate" name="date" required>
+            <label>狀態</label>
+            <select name="status">
+                <option value="出席">出席 (+10分)</option>
+                <option value="公假">公假 (+10分)</option>
+                <option value="遲到">遲到 (+5分)</option>
+            </select>
+            <button type="button" onclick="handleGPS()">送出簽到</button>
         </form>
     </div>
 
-    <div class="leaderboard-section">
+    <div class="rank-box">
         <h3>🏆 榮譽積分排行榜 (總計)</h3>
         <table>
-            <thead><tr><th>名次</th><th>姓名</th><th>總積分</th></tr></thead>
+            <thead><tr><th>名次</th><th>姓名</th><th>總分</th></tr></thead>
             <tbody>
                 {% for user in leaderboard %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ user.姓名 }}</td>
-                    <td>{{ user.積分 }} pts</td>
-                </tr>
+                <tr><td>{{ loop.index }}</td><td>{{ user.姓名 }}</td><td>{{ user.積分 }} 分</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -85,22 +49,15 @@
     <script>
         document.getElementById('todayDate').valueAsDate = new Date();
         function handleGPS() {
-            Swal.fire({ title: '定位中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-            navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById('lat').value = position.coords.latitude;
-                document.getElementById('lon').value = position.coords.longitude;
-                const formData = new FormData(document.getElementById('attendanceForm'));
-                fetch('/submit', { method: 'POST', body: formData })
-                .then(response => response.text())
-                .then(data => {
-                    const isSuccess = data.includes("成功");
-                    Swal.fire({
-                        title: isSuccess ? '完成' : '提示',
-                        text: data,
-                        icon: isSuccess ? 'success' : 'info'
-                    }).then(() => { if(isSuccess) location.reload(); });
+            Swal.fire({ title: '定位中...', didOpen: () => { Swal.showLoading(); }});
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                document.getElementById('lat').value = pos.coords.latitude;
+                document.getElementById('lon').value = pos.coords.longitude;
+                fetch('/submit', { method: 'POST', body: new FormData(document.getElementById('attendanceForm')) })
+                .then(res => res.text()).then(data => {
+                    Swal.fire(data.includes("成功") ? '成功' : '提示', data, 'info').then(() => location.reload());
                 });
-            }, function(e) { Swal.fire('定位失敗', e.message, 'error'); }, { enableHighAccuracy: true });
+            }, function(err) { Swal.fire('定位失敗', err.message, 'error'); });
         }
     </script>
 </body>
