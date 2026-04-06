@@ -5,7 +5,7 @@ from math import radians, cos, sin, asin, sqrt
 
 app = Flask(__name__)
 
-# --- 1. 設定分數對照表 (這就是自動給分的依據) ---
+# --- 1. 設定分數對照表 ---
 SCORES_CONFIG = {"出席": 10, "公假": 10, "遲到": 5, "缺席": 0}
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -26,19 +26,22 @@ def index():
         # --- 2. 核心統計邏輯：根據學號自動累加分數 ---
         summary = {} 
         for row in all_records:
-            sid = str(row.get('學號', '')).strip()
+            # 取得學號並徹底去除所有空格
+            sid = str(row.get('學號', '')).replace(" ", "").strip()
             if not sid: continue 
             
             name = str(row.get('姓名', '未知')).strip()
             
-            # 讀取積分，如果是空的就自動當作 0，避免報錯
+            # 讀取積分，防呆處理（確保是數字）
             raw_val = row.get('積分', 0)
             try:
-                score = int(str(raw_val).strip()) if str(raw_val).strip() else 0
+                # 只保留數字部分
+                clean_val = "".join(filter(str.isdigit, str(raw_val)))
+                score = int(clean_val) if clean_val else 0
             except:
                 score = 0
             
-            # 如果學號重複，就分數相加
+            # 加總邏輯
             if sid in summary:
                 summary[sid]['積分'] += score
             else:
@@ -66,19 +69,18 @@ def submit():
         lat = float(request.form.get("latitude", 0))
         lon = float(request.form.get("longitude", 0))
 
-        # 距離驗證 (150公尺)
+        # 距離驗證
         dist = haversine(lon, lat, 120.202575, 22.981225)
         if dist > 150:
             return f"簽到失敗！距離太遠 ({int(dist)}公尺)"
 
-        # --- 3. 關鍵修正：自動決定要寫入的分數 ---
-        # 如果 status 是 "出席"，this_score 就會是 10
+        # --- 3. 自動決定寫入的分數 ---
         this_score = SCORES_CONFIG.get(status, 0)
 
-        # 按照順序寫入試算表：學號, 姓名, 日期, 節次, 狀態, 積分
-        # 這是讓積分自動寫入 F 欄的關鍵
+        # 修正：確保這行開頭沒有多餘空格！
         row_data = [sid, name, sdate, period, status, this_score]
-          sheet.append_row(row_data)
+        sheet.append_row(row_data)
+        
         return f"簽到成功！{name} 已獲得 {this_score} 分"
         
     except Exception as e:
